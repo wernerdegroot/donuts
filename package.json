@@ -1,0 +1,27 @@
+{
+  "name": "donuts-typescript",
+  "version": "0.0.6",
+  "description": "Support for do notation/for expressions in Typescript",
+  "main": "index.js",
+  "scripts": {
+    "tsc": "tsc",
+    "prepublish": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wernerdegroot/donuts.git"
+  },
+  "author": "Werner de Groot",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wernerdegroot/donuts/issues"
+  },
+  "homepage": "https://github.com/wernerdegroot/donuts#readme",
+  "dependencies": {
+    "typescript": "^3.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.12"
+  }
+}
