@@ -1,18 +1,82 @@
 import * as ts from "typescript";
+import * as fs from "fs";
 
 export default (program: ts.Program): ts.TransformerFactory<ts.SourceFile> => {
-  return (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> => {
-    const visitor: ts.Visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
-      if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
-        if (node.expression.escapedText === "doTheThing") {
-          const visited = visitDoTheThing(node);
-          return visited;
+  return (
+    transformationContext: ts.TransformationContext
+  ): ts.Transformer<ts.SourceFile> => {
+    type VisitContext = { hasTransformed: boolean };
+    const visitor = (sourceFile: ts.SourceFile, visitContext: VisitContext) => {
+      return (node: ts.Node): ts.VisitResult<ts.Node> => {
+        if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
+          if (node.expression.escapedText === "doTheThing") {
+            const visited = visitDoTheThing(node);
+            visitContext.hasTransformed = true;
+            return visited;
+          }
         }
-      }
-      return ts.visitEachChild(node, visitor, context);
+        return ts.visitEachChild(
+          node,
+          visitor(sourceFile, visitContext),
+          transformationContext
+        );
+      };
     };
 
-    return (sf: ts.SourceFile) => ts.visitNode(sf, visitor);
+    return (sourceFile: ts.SourceFile) => {
+      const visitContext: VisitContext = { hasTransformed: false };
+      const transformed = ts.visitNode(
+        sourceFile,
+        visitor(sourceFile, visitContext)
+      );
+      // if (visitContext.hasTransformed) {
+      //   const transformedAsString = printer.printFile(transformed);
+      //   // Create the language service host to allow the LS to communicate with the host
+      //   const servicesHost: ts.LanguageServiceHost = {
+      //     getScriptFileNames: () => [sourceFile.fileName],
+      //     getScriptVersion: fileName => "0",
+      //     getScriptSnapshot: fileName => {
+      //       if (fileName === sourceFile.fileName) {
+      //         return ts.ScriptSnapshot.fromString(transformedAsString);
+      //       }
+
+      //       if (!fs.existsSync(fileName)) {
+      //         return undefined;
+      //       }
+
+      //       return ts.ScriptSnapshot.fromString(
+      //         fs.readFileSync(fileName).toString()
+      //       );
+      //     },
+      //     getCurrentDirectory: () => process.cwd(),
+      //     getCompilationSettings: () => program.getCompilerOptions(),
+      //     getDefaultLibFileName: options => ts.getDefaultLibFilePath(options),
+      //     fileExists: ts.sys.fileExists,
+      //     readFile: ts.sys.readFile,
+      //     readDirectory: ts.sys.readDirectory
+      //   };
+
+      //   const services = ts.createLanguageService(
+      //     servicesHost,
+      //     ts.createDocumentRegistry()
+      //   );
+
+      //   const allDiagnostics = services
+      //     .getCompilerOptionsDiagnostics()
+      //     .concat(services.getSyntacticDiagnostics(sourceFile.fileName))
+      //     .concat(services.getSemanticDiagnostics(sourceFile.fileName));
+
+      //   console.log(allDiagnostics);
+
+      //   const transpiledTransform = ts.transpileModule(transformedAsString, {
+      //     compilerOptions: program.getCompilerOptions(),
+      //     reportDiagnostics: true
+      //   });
+      //   console.log(transformedAsString);
+      //   console.log(transpiledTransform.diagnostics);
+      // }
+      return transformed;
+    };
   };
 };
 
@@ -64,6 +128,9 @@ function doSomethingWithStatement(
     expression: ts.YieldExpression
   ) {
     const yielded = expression.expression;
+    if (yielded === undefined) {
+      throw new Error("Nothing yielded");
+    }
     const flatMapCall = ts.createCall(
       ts.createPropertyAccess(typeclass, "flatMap"),
       [],
@@ -99,6 +166,10 @@ function doSomethingWithStatement(
 
     if (!ts.isIdentifier(variable.name)) {
       throw new Error("Expected identifier");
+    }
+
+    if (variable.initializer === undefined) {
+      throw new Error("No initializer");
     }
 
     if (!ts.isYieldExpression(variable.initializer)) {

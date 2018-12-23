@@ -1,6 +1,6 @@
 {
   "name": "donuts-typescript",
-  "version": "0.0.6",
+  "version": "0.0.12",
   "description": "Support for do notation/for expressions in Typescript",
   "main": "index.js",
   "scripts": {
@@ -18,10 +18,9 @@
     "url": "https://github.com/wernerdegroot/donuts/issues"
   },
   "homepage": "https://github.com/wernerdegroot/donuts#readme",
-  "dependencies": {
-    "typescript": "^3.2.2"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/node": "^10.12.12"
+    "typescript": "2.8.4",
+    "@types/node": "10.12.12"
   }
 }
